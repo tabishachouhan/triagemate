@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TriageMate — Know what your symptoms need</title>
+<style>
+  :root {
+    --ink: #1c2b2a;
+    --paper: #f6f4ee;
+    --panel: #ffffff;
+    --sage: #4f7a72;
+    --sage-dark: #365e57;
+    --amber: #c98a2c;
+    --red: #b0402f;
+    --line: #dcd8cc;
+    --muted: #6b6f66;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Iowan Old Style', 'Georgia', serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 48px 24px 80px;
+  }
+
+  header {
+    margin-bottom: 32px;
+  }
+
+  .eyebrow {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--sage-dark);
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+
+  h1 {
+    font-size: 34px;
+    line-height: 1.15;
+    margin: 0 0 10px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  .sub {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    color: var(--muted);
+    font-size: 15px;
+    line-height: 1.5;
+    max-width: 52ch;
+  }
+
+  .disclaimer {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 12.5px;
+    color: var(--muted);
+    background: #eeece2;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 10px 14px;
+    margin-top: 18px;
+  }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 24px;
+    margin-top: 28px;
+  }
+
+  label {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--sage-dark);
+    display: block;
+    margin-bottom: 8px;
+  }
+
+  textarea {
+    width: 100%;
+    min-height: 110px;
+    resize: vertical;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 14px;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 15px;
+    color: var(--ink);
+    background: var(--paper);
+  }
+
+  textarea:focus {
+    outline: 2px solid var(--sage);
+    outline-offset: 1px;
+  }
+
+  .actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 14px;
+  }
+
+  .hint {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  button {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    background: var(--sage-dark);
+    color: #fff;
+    border: none;
+    border-radius: 7px;
+    padding: 11px 22px;
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.1s ease;
+  }
+
+  button:hover { background: var(--sage); }
+  button:active { transform: scale(0.98); }
+  button:disabled { background: #a9b0a9; cursor: not-allowed; }
+
+  #result {
+    margin-top: 24px;
+    display: none;
+  }
+
+  .result-card {
+    border-radius: 10px;
+    padding: 22px 24px;
+    border: 1px solid var(--line);
+  }
+
+  .urgency-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 6px 12px;
+    border-radius: 100px;
+    margin-bottom: 16px;
+  }
+
+  .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+
+  .self_care { background: #e4efe4; color: #2f5c33; }
+  .self_care .dot { background: #4c9a52; }
+
+  .see_doctor { background: #fbeed9; color: #7a541a; }
+  .see_doctor .dot { background: var(--amber); }
+
+  .emergency { background: #f7e2de; color: #7a2c1e; }
+  .emergency .dot { background: var(--red); }
+
+  .result-row {
+    margin-bottom: 14px;
+  }
+
+  .result-row .label {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+
+  .result-row .value {
+    font-size: 16.5px;
+    line-height: 1.5;
+  }
+
+  .error-box {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    color: var(--red);
+    background: #f7e2de;
+    border: 1px solid #e2b8ae;
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 13.5px;
+    margin-top: 20px;
+    display: none;
+  }
+
+  footer {
+    margin-top: 48px;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 12px;
+    color: var(--muted);
+    border-top: 1px solid var(--line);
+    padding-top: 18px;
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="eyebrow">Compass Crew AI Innovation Challenge · Healthcare &amp; Social Impact</div>
+      <h1>TriageMate</h1>
+      <div class="sub">Describe how you're feeling in your own words. TriageMate gives you a clear read on how urgent it is, and what to do next — so you're not left guessing.</div>
+      <div class="disclaimer">TriageMate does not diagnose conditions and is not a substitute for professional medical advice. In a medical emergency, contact local emergency services immediately.</div>
+    </header>
+
+    <div class="panel">
+      <label for="symptoms">What's going on?</label>
+      <textarea id="symptoms" placeholder="e.g. I've had a dull headache since this morning, and I feel a bit dizzy when I stand up..."></textarea>
+      <div class="actions">
+        <span class="hint" id="charhint">Be as specific as you can — duration, severity, and what makes it better or worse all help.</span>
+        <button id="assessBtn">Assess</button>
+      </div>
+    </div>
+
+    <div class="error-box" id="errorBox"></div>
+
+    <div id="result">
+      <div class="result-card" id="resultCard">
+        <div class="urgency-badge" id="badge"><span class="dot"></span><span id="badgeText"></span></div>
+        <div class="result-row">
+          <div class="label">Why</div>
+          <div class="value" id="reasoning"></div>
+        </div>
+        <div class="result-row">
+          <div class="label">What to do next</div>
+          <div class="value" id="action"></div>
+        </div>
+        <div class="result-row">
+          <div class="label">Where to go</div>
+          <div class="value" id="careType"></div>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      Built by Team tabishachouhan001 for Compass Crew AI Innovation Challenge 2026.
+    </footer>
+  </div>
+
+<script>
+  // Point this at your deployed backend URL once you deploy it.
+  const API_BASE = window.TRIAGEMATE_API_BASE || "http://localhost:5000";
+
+  const btn = document.getElementById("assessBtn");
+  const textarea = document.getElementById("symptoms");
+  const resultDiv = document.getElementById("result");
+  const errorBox = document.getElementById("errorBox");
+  const badge = document.getElementById("badge");
+  const badgeText = document.getElementById("badgeText");
+
+  const urgencyLabels = {
+    self_care: "Self-care",
+    see_doctor: "See a doctor soon",
+    emergency: "Seek emergency care now",
+  };
+
+  function sessionId() {
+    let id = localStorage.getItem("tm_session"); // fine for a hackathon demo; swap for real auth later
+    if (!id) {
+      id = "sess_" + Math.random().toString(36).slice(2);
+      localStorage.setItem("tm_session", id);
+    }
+    return id;
+  }
+
+  async function assess() {
+    const message = textarea.value.trim();
+    errorBox.style.display = "none";
+    resultDiv.style.display = "none";
+
+    if (!message) {
+      errorBox.textContent = "Please describe your symptoms first.";
+      errorBox.style.display = "block";
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = "Assessing…";
+
+    try {
+      const res = await fetch(`${API_BASE}/api/assess`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message, sessionId: sessionId() }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Something went wrong.");
+      }
+
+      const data = await res.json();
+
+      badge.className = "urgency-badge " + data.urgency;
+      badgeText.textContent = urgencyLabels[data.urgency] || data.urgency;
+      document.getElementById("reasoning").textContent = data.reasoning;
+      document.getElementById("action").textContent = data.recommended_action;
+      document.getElementById("careType").textContent = data.care_type;
+
+      resultDiv.style.display = "block";
+    } catch (e) {
+      errorBox.textContent = e.message || "Could not reach TriageMate. Please try again.";
+      errorBox.style.display = "block";
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "Assess";
+    }
+  }
+
+  btn.addEventListener("click", assess);
+  textarea.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) assess();
+  });
+</script>
+</body>
+</html>
