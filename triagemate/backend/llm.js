@@ -1,6 +1,5 @@
 // Using Groq's free API (OpenAI-compatible format) — no cost, no card required.
 // To switch to Claude later, see the commented alternative at the bottom of this file.
-const GROQ_API_KEY = process.env.GROQ_API_KEY;
 const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
 
 /**
@@ -48,8 +47,7 @@ export async function assessSymptoms(userMessage) {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${GROQ_API_KEY}`,
-    },
+Authorization: `Bearer ${process.env.GROQ_API_KEY}`,    },
     body: JSON.stringify({
       model: "llama-3.3-70b-versatile", // free on Groq, fast and solid for structured JSON tasks
       max_tokens: 500,
