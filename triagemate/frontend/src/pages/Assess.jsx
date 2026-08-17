@@ -4,6 +4,8 @@ import { Send, ShieldAlert } from "lucide-react";
 import ChatBubble from "../components/ChatBubble";
 import TypingIndicator from "../components/TypingIndicator";
 import ResultCard from "../components/ResultCard";
+import { useAuth } from "../context/AuthContext";
+import { supabase } from "../lib/supabase";
 
 const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:5000";
 
@@ -28,6 +30,7 @@ export default function Assess() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [result, setResult] = useState(null);
+  const { user } = useAuth();
   const scrollRef = useRef(null);
   const textareaRef = useRef(null);
 
@@ -73,6 +76,18 @@ export default function Assess() {
       } else if (data.type === "assessment") {
         setResult(data);
         setHistory((h) => [...h, { role: "assistant", content: JSON.stringify(data) }]);
+
+        if (user) {
+          const lastUserMsg = [...newHistory].reverse().find((m) => m.role === "user");
+          await supabase.from("assessments").insert([{
+            user_id: user.id,
+            user_message: lastUserMsg?.content ?? "",
+            urgency: data.urgency,
+            reasoning: data.reasoning,
+            recommended_action: data.recommended_action,
+            care_type: data.care_type,
+          }]);
+        }
       } else {
         throw new Error("Unexpected response from server.");
       }
