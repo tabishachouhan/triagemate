@@ -1,0 +1,23 @@
+@import "tailwindcss";
+
+@theme {
+  --font-serif: 'Iowan Old Style', 'Georgia', serif;
+  --font-sans: 'Helvetica Neue', Arial, sans-serif;
+
+  --color-ink: #10201d;
+  --color-paper: #f6f4ee;
+  --color-sage: #4f7a72;
+  --color-sage-dark: #365e57;
+  --color-sage-pale: #e4efe9;
+  --color-teal: #028090;
+  --color-mint: #02c39a;
+  --color-amber: #c98a2c;
+  --color-red: #b0402f;
+  --color-line: #dcd8cc;
+  --color-muted: #6b6f66;
+}
+
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+}

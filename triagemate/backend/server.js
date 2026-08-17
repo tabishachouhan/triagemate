@@ -1,7 +1,7 @@
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
-import { assessSymptoms } from "./llm.js";
+import { converseSymptoms } from "./llm.js";
 import { saveAssessment } from "./supabaseClient.js";
 
 const app = express();
@@ -13,21 +13,32 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "ok", service: "TriageMate API" });
 });
 
-// Main endpoint: takes user's symptom description, returns structured urgency assessment
-app.post("/api/assess", async (req, res) => {
-  const { message, sessionId } = req.body;
+// Multi-turn endpoint: takes the full conversation so far, returns either
+// a clarifying question or a final structured urgency assessment.
+// Body: { messages: [{role: 'user'|'assistant', content: string}, ...], sessionId }
+app.post("/api/converse", async (req, res) => {
+  const { messages, sessionId } = req.body;
 
-  if (!message || typeof message !== "string" || message.trim().length === 0) {
-    return res.status(400).json({ error: "Please describe your symptoms in the 'message' field." });
+  if (!Array.isArray(messages) || messages.length === 0) {
+    return res.status(400).json({ error: "Please provide a non-empty 'messages' array." });
+  }
+
+  const lastUserMsg = [...messages].reverse().find((m) => m.role === "user");
+  if (!lastUserMsg || !lastUserMsg.content?.trim()) {
+    return res.status(400).json({ error: "The last message must be a non-empty user message." });
   }
 
   try {
-    const result = await assessSymptoms(message);
-    await saveAssessment(sessionId || "anonymous", message, result);
+    const result = await converseSymptoms(messages);
+
+    if (result.type === "assessment") {
+      await saveAssessment(sessionId || "anonymous", lastUserMsg.content, result);
+    }
+
     res.json(result);
   } catch (err) {
-    console.error("Assessment error:", err.message);
-    res.status(500).json({ error: "Something went wrong while assessing your symptoms. Please try again." });
+    console.error("Conversation error:", err.message);
+    res.status(500).json({ error: "Something went wrong. Please try again." });
   }
 });
 
